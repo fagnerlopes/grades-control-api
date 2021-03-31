@@ -107,16 +107,45 @@ router.get("/", async (req, res) => {
   }
 });
 
+router.get('/total-grade', async (req, res) => {
+  let student = req.query.student;
+  let subject = req.query.subject;
+
+  console.log(student);
+
+  const data = JSON.parse(await readFile(fileName));
+
+  if(!student || !subject) {
+    res.send({error: 'Student and subject are required'});
+    throw new Error('Student and subject are required');
+  }
+
+  let filteredGrades = data.grades.filter(grade => { 
+    return grade.student === student;
+  });
+
+  console.log(filteredGrades);
+  res.end();
+  
+});
+
 router.get("/:id", async (req, res) => {
   try {
     let id = req.params.id;
     const data = JSON.parse(await readFile(fileName));
     const grade = data.grades.find((grade) => grade.id === parseInt(id));
-    res.send(grade);
+    if(!grade){
+      res.send({error: 'Record not found'});
+    } else {
+      res.send(grade);
+    }
+    
   } catch (err) {
     res.send({ error: err });
   }
 });
+
+
 
 router.delete("/:id", async (req, res) => {
   try {
@@ -169,4 +198,6 @@ router.put("/", async (req, res) => {
     res.send(err);
   }
 });
+
+
 export default router;
