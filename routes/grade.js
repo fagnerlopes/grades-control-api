@@ -107,25 +107,82 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.get('/total-grade', async (req, res) => {
-  let student = req.query.student;
-  let subject = req.query.subject;
-
-  console.log(student);
+router.get('/avg', async (req, res) => {
+  
+  let subject = req.query.subject; 
+  let type = req.query.type;
 
   const data = JSON.parse(await readFile(fileName));
 
-  if(!student || !subject) {
+  if(!type && !subject) {
+    res.send({error: 'Type and subject are required'});
+    throw new Error('Type and subject are required');
+  }
+
+  let filteredGrades = data.grades.filter(grade => { 
+    return (grade.type.toLowerCase() == type.toLowerCase() && grade.subject.toLowerCase() == subject.toLowerCase() ) ;
+  });
+
+  console.log(filteredGrades);
+
+  let totalGrades = filteredGrades.reduce((accumulator, current) => {
+    return accumulator + current.value;
+  }, 0);
+
+  const avgGrades = totalGrades / filteredGrades.length;
+ 
+  res.send({average:avgGrades });
+  
+});
+
+router.get('/total-grade', async (req, res) => {
+  let student = req.query.student;
+  let subject = req.query.subject; 
+
+  const data = JSON.parse(await readFile(fileName));
+
+  if(!student && !subject) {
     res.send({error: 'Student and subject are required'});
     throw new Error('Student and subject are required');
   }
 
   let filteredGrades = data.grades.filter(grade => { 
-    return grade.student === student;
+    return (grade.student.toLowerCase() == student.toLowerCase() && grade.subject.toLowerCase() == subject.toLowerCase() ) ;
   });
 
   console.log(filteredGrades);
-  res.end();
+
+  let totalGrades = filteredGrades.reduce((accumulator, current) => {
+    return accumulator + current.value;
+  }, 0);
+ 
+  res.send({total:totalGrades });
+  
+});
+
+router.get('/top-grades', async (req, res) => {
+  
+  let subject = req.query.subject; 
+  let type = req.query.type;
+
+  const data = JSON.parse(await readFile(fileName));
+
+  if(!type && !subject) {
+    res.send({error: 'Type and subject are required'});
+    throw new Error('Type and subject are required');
+  }
+
+  let filteredGrades = data.grades.filter(grade => { 
+    return (grade.type.toLowerCase() == type.toLowerCase() && grade.subject.toLowerCase() == subject.toLowerCase() ) ;
+  });
+
+  console.log(filteredGrades);
+
+  let sortedGrades = filteredGrades.sort((a,b) =>{
+    return b.value - a.value;
+  });
+ 
+  res.send(JSON.stringify(sortedGrades.slice(0, 3)));
   
 });
 
